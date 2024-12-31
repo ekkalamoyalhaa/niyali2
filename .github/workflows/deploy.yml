@@ -1,0 +1,32 @@
+name: Deploy to IONOS
+
+on:
+  push:
+    branches:
+      - master  # or master, depending on your branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up FTP client
+      run: sudo apt-get install lftp
+
+    - name: Deploy to IONOS via FTP
+      env:
+        FTP_HOST: ${{ secrets.IONOS_FTP_HOST }}
+        FTP_USER: ${{ secrets.IONOS_FTP_USER }}
+        FTP_PASS: ${{ secrets.IONOS_FTP_PASS }}
+        LOCAL_DIR: './'  # Adjust to your project's directory
+        REMOTE_DIR: '/path/to/your/remote/dir'  # Adjust to your server's directory
+      run: |
+        lftp -f "
+        open $FTP_HOST
+        user $FTP_USER $FTP_PASS
+        mirror --reverse --delete --verbose $LOCAL_DIR $REMOTE_DIR
+        bye
+        "
